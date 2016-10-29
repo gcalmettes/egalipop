@@ -2,10 +2,10 @@
 Egalitarian population model
 =============================
 
-To be detailed ...
+Simple population model that predicts a sudden transition from hierarchy to egalitarianism as a a group of primates develops the capacity for language and gossip.
 
 Requirements
 ............
 
-* numpy
-* scipy
+* Distribution.jl
+* Iterators.jl

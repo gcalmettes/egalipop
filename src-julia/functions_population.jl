@@ -1,4 +1,5 @@
 using Iterators
+using Combinatorics
 
 ###########
 #Functions related to Population object
@@ -73,7 +74,7 @@ end
 
 function population_get_all_groups_dom_scores(p::Population)
   groups_count = length(p.groups_list)
-  ds = Array(Float64, groups_count)
+  ds = Array{Float64}(groups_count)
   for i in 1:groups_count
     g = p.groups_list[i]
     agents_list = filter(a->a.id in g.agents_id_list, p.agents_list)
@@ -85,7 +86,7 @@ end
 
 function population_get_all_agents_dom_scores(p::Population)
   size = p.size
-  ds = Array(Float64, size)
+  ds = Array{Float64}(size)
   for i in 1:size
     ds[i] = agent_get_current_max_score(p, i)
   end
@@ -258,7 +259,7 @@ function population_get_all_agents_score_differences(p::Population)
     all_pairs = collect(combinations(all_scores, 2))
 
     n = length(all_pairs)
-    differences = Array(Float64, n)
+    differences = Array{Float64}(n)
     for i = 1:n
         a,b = all_pairs[i]
         differences[i] = abs(a-b)
@@ -1100,3 +1101,57 @@ function population_random_coalitions2_freeriders!(p::Population)
   end
 end
 =#
+
+
+##### Analytical solution
+function population_get_gmax_crit_range(p::Population, lambda::Float64)
+  agents_list = [deepcopy(agent) for agent in p.agents_list]
+  gamma_whole_pop = (1+length(agents_list)/p.g_kd)^p.g_h
+  dominant_indivDS = Float64[]
+  popDS = Float64[]
+  for time in 1:50
+    max_indivDS = maximum([a.dom_score for a in agents_list])
+    coalitionDS = 0.
+    for a in agents_list
+      coalitionDS+=a.dom_score
+    end
+    coalitionDS*=lambda
+    push!(dominant_indivDS, max_indivDS)
+    push!(popDS, coalitionDS)
+    for agent in agents_list
+      agent._age += 1
+      agent_update_similar!(agent)
+    end
+  end
+  min_gmax_crit = (minimum(dominant_indivDS)*gamma_whole_pop)/maximum(popDS)
+  max_gmax_crit = (maximum(dominant_indivDS)*gamma_whole_pop)/minimum(popDS)
+  return Float64[min_gmax_crit,max_gmax_crit]
+end
+
+
+function population_get_predicted_gmax_crit_time(p::Population, t::Int64)
+  agents_list = [deepcopy(agent) for agent in p.agents_list]
+  gamma_whole_pop = (1+length(agents_list)/p.g_kd)^p.g_h
+  dominant_indivDS = Float64[]
+  popDS = Float64[]
+  for time in 1:t
+    max_indivDS = maximum([a.dom_score for a in agents_list])
+    coalitionDS = 0.
+    for a in agents_list
+      coalitionDS+=a.dom_score
+    end
+    #coalitionDS*=lambda
+    push!(dominant_indivDS, max_indivDS)
+    push!(popDS, coalitionDS)
+    for agent in agents_list
+      agent._age += 1
+      agent_update_similar!(agent)
+    end
+  end
+  gmax_crit_lambda = (dominant_indivDS.*gamma_whole_pop)./popDS
+  return gmax_crit_lambda
+end
+
+function population_get_predicted_gmax_crit(p::Population, t::Int64)
+  return maximum(population_get_predicted_gmax_crit_time(p, t))
+end

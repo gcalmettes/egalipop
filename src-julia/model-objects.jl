@@ -31,7 +31,7 @@ end
 ###########
 
 #abstract type so that circular definition of the Group type inside Population work
-abstract AbstractGroup
+abstract type AbstractGroup end
 
 type Population
   size::Int
@@ -40,14 +40,15 @@ type Population
   g_kd::Float64
   agents_list::Vector{Agent}
   groups_list::Vector{AbstractGroup} #::Vector{Group} doesn't work as circular definition is not yet handled by JULIA
+  agents_random_replaced::Bool
   #groups_list::Vector{Group}
   _agents_count::Int #use to attribute new agents id
   _groups_count::Int #use to attribute new group id
   _distribution_agents_params::Function
   _distribution_groups_laziness::Distribution
 
-  function Population(size::Int=15 ; gmax::Float64=G_MAX, gh::Float64=G_H, gkd::Float64=G_KD, distribution_agents_params::Function=dist_poisson, distribution_groups_laziness::Distribution=Uniform(0.5, 1), in_groups::Bool=false)
-    p = new(size, gmax, gh, gkd, [Agent(i) for i in 1:size], Group[], size, 0, distribution_agents_params, distribution_groups_laziness)
+  function Population(size::Int=15 ; gmax::Float64=G_MAX, gh::Float64=G_H, gkd::Float64=G_KD, distribution_agents_params::Function=dist_poisson, distribution_groups_laziness::Distribution=Uniform(0.5, 1), in_groups::Bool=false, agents_random::Bool=true)
+    p = new(size, gmax, gh, gkd, [Agent(i) for i in 1:size], Group[], agents_random, size, 0, distribution_agents_params, distribution_groups_laziness)
     if in_groups==true
         for agent in p.agents_list
             population_add_groups!(p, 1, [agent])

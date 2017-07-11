@@ -12,7 +12,15 @@ function agent_add_year!(a::Agent, t::Int)
 end
 function agent_add_year!(p::Population, a::Agent, t::Int)
   a._age += t
-  agent_update!(p, a)
+  #agent_update!(p, a)
+
+##
+  if p.agents_random_replaced==true
+    agent_update!(p, a)
+  elseif p.agents_random_replaced==false
+    agent_update_similar!(p, a)
+  end
+##
 end
 
 function agent_update!(a::Agent)
@@ -46,6 +54,30 @@ function agent_update!(p::Population, a::Agent)
   a.dom_score = a.alpha+a.beta
 end
 
+function agent_update_similar!(a::Agent)
+  a.age = a._age%AGE_MAX
+  if a.age==0
+    #if dead, replace with new agent with age 1
+    a._age+=1
+    a.age = a._age%AGE_MAX
+  end
+  age_factor = agent_age_factor(a.age)
+  a.alpha = a._alpha*age_factor
+  a.beta = a._beta*age_factor
+  a.dom_score = a.alpha+a.beta
+end
+function agent_update_similar!(p::Population, a::Agent)
+  a.age = a._age%AGE_MAX
+  if a.age==0
+    #if dead, replace with new agent with age 1
+    a._age+=1
+    a.age = a._age%AGE_MAX
+  end
+  age_factor = agent_age_factor(a.age)
+  a.alpha = a._alpha*age_factor
+  a.beta = a._beta*age_factor
+  a.dom_score = a.alpha+a.beta
+end
 
 ##################
 ################## Working on it

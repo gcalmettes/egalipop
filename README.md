@@ -1,6 +1,5 @@
-=============================
-Egalitarian transition population model
-=============================
+** Egalitarian transition population model **
+
 
 Simple population model in the [Julia language](https://julialang.org/) that predicts a sudden transition from hierarchy to egalitarianism as a a group of primates develops the capacity for language and gossip.
 
